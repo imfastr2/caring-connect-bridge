@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, Clock, DollarSign, Heart, Shield, Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const BecomeCaregiver = () => {
   return (
@@ -22,8 +23,8 @@ const BecomeCaregiver = () => {
               <p className="text-xl md:text-2xl mb-8">
                 Share your skills, set your own schedule, and make a difference in people's lives.
               </p>
-              <Button size="lg" className="bg-white text-care-primary hover:bg-gray-100 text-lg">
-                Apply Now
+              <Button size="lg" className="bg-white text-care-primary hover:bg-gray-100 text-lg" asChild>
+                <Link to="/signup">Apply Now</Link>
               </Button>
             </div>
           </div>
@@ -134,8 +135,8 @@ const BecomeCaregiver = () => {
                     <Input id="experience" type="number" placeholder="0" min="0" />
                   </div>
 
-                  <Button className="w-full bg-care-primary hover:bg-care-secondary">
-                    Start Application
+                  <Button className="w-full bg-care-primary hover:bg-care-secondary" asChild>
+                    <Link to="/signup">Start Application</Link>
                   </Button>
 
                   <p className="text-center text-sm text-gray-500 mt-4">

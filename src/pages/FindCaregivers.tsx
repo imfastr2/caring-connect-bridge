@@ -1,12 +1,14 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Toggle } from "@/components/ui/toggle";
-import { MapPin, Search, Filter, Star } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MapPin, Search, Filter, Star, Clock, DollarSign } from "lucide-react";
 import CaregiverCard, { Caregiver } from "@/components/CaregiverCard";
 
 const FindCaregivers = () => {
@@ -77,10 +79,16 @@ const FindCaregivers = () => {
   const [filteredCaregivers, setFilteredCaregivers] = useState<Caregiver[]>(caregivers);
   const [locationFilter, setLocationFilter] = useState("");
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
+  const [ratingFilter, setRatingFilter] = useState<number>(0);
+  const [priceRange, setPriceRange] = useState<[number, number]>([15, 30]);
+  const [experienceFilter, setExperienceFilter] = useState<number>(0);
+  const [sortOption, setSortOption] = useState<string>("rating-high");
 
   const specialtyOptions = [
     "Elder Care", "Child Care", "Disability Support", "Medical", 
-    "Physical Therapy", "Hospice", "Special Needs", "Meal Preparation"
+    "Physical Therapy", "Hospice", "Special Needs", "Meal Preparation",
+    "Companionship", "Rehabilitation", "Post-Surgery Care", "Tutoring", 
+    "First Aid Certified", "Recreational Activities"
   ];
 
   const handleSpecialtyToggle = (specialty: string) => {
@@ -94,12 +102,14 @@ const FindCaregivers = () => {
   const handleSearch = () => {
     let filtered = [...caregivers];
     
+    // Filter by location
     if (locationFilter) {
       filtered = filtered.filter(caregiver => 
         caregiver.location.toLowerCase().includes(locationFilter.toLowerCase())
       );
     }
     
+    // Filter by specialties
     if (selectedSpecialties.length > 0) {
       filtered = filtered.filter(caregiver => 
         caregiver.specialties.some(specialty => 
@@ -108,8 +118,46 @@ const FindCaregivers = () => {
       );
     }
     
+    // Filter by minimum rating
+    if (ratingFilter > 0) {
+      filtered = filtered.filter(caregiver => caregiver.rating >= ratingFilter);
+    }
+    
+    // Filter by price range
+    filtered = filtered.filter(
+      caregiver => caregiver.hourlyRate >= priceRange[0] && caregiver.hourlyRate <= priceRange[1]
+    );
+    
+    // Filter by minimum experience
+    if (experienceFilter > 0) {
+      filtered = filtered.filter(caregiver => caregiver.experience >= experienceFilter);
+    }
+    
+    // Sort the results
+    switch (sortOption) {
+      case "rating-high":
+        filtered.sort((a, b) => b.rating - a.rating);
+        break;
+      case "experience-high":
+        filtered.sort((a, b) => b.experience - a.experience);
+        break;
+      case "price-low":
+        filtered.sort((a, b) => a.hourlyRate - b.hourlyRate);
+        break;
+      case "price-high":
+        filtered.sort((a, b) => b.hourlyRate - a.hourlyRate);
+        break;
+      default:
+        break;
+    }
+    
     setFilteredCaregivers(filtered);
   };
+
+  // Apply sorting when sortOption changes
+  useEffect(() => {
+    handleSearch();
+  }, [sortOption]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -126,7 +174,7 @@ const FindCaregivers = () => {
         {/* Search and filter section */}
         <div className="container mx-auto px-4 py-8">
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="location" className="mb-2">Location</Label>
                 <div className="relative">
@@ -140,22 +188,85 @@ const FindCaregivers = () => {
                   />
                 </div>
               </div>
-              <div className="col-span-1 md:col-span-2">
-                <Label className="mb-2">Specialties</Label>
-                <div className="flex flex-wrap gap-2">
-                  {specialtyOptions.map((specialty) => (
-                    <Toggle
-                      key={specialty}
-                      pressed={selectedSpecialties.includes(specialty)}
-                      onPressedChange={() => handleSpecialtyToggle(specialty)}
-                      className="bg-white border border-gray-300 hover:bg-care-light hover:text-care-primary data-[state=on]:bg-care-light data-[state=on]:text-care-primary"
-                    >
-                      {specialty}
-                    </Toggle>
-                  ))}
+              
+              <div>
+                <Label className="mb-2">Minimum Rating</Label>
+                <div className="flex items-center space-x-4">
+                  <Select 
+                    value={ratingFilter.toString()} 
+                    onValueChange={(value) => setRatingFilter(Number(value))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select minimum rating" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Any Rating</SelectItem>
+                      <SelectItem value="3">3+ Stars</SelectItem>
+                      <SelectItem value="4">4+ Stars</SelectItem>
+                      <SelectItem value="4.5">4.5+ Stars</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
+
+            <div className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label className="mb-2">Price Range ($/hour)</Label>
+                  <div className="px-3 pt-6 pb-2">
+                    <Slider
+                      defaultValue={[15, 30]}
+                      min={15}
+                      max={50}
+                      step={1}
+                      value={priceRange}
+                      onValueChange={(values) => setPriceRange(values as [number, number])}
+                    />
+                    <div className="flex justify-between mt-2 text-sm text-gray-500">
+                      <span>${priceRange[0]}/hr</span>
+                      <span>${priceRange[1]}/hr</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="mb-2">Minimum Experience</Label>
+                  <Select 
+                    value={experienceFilter.toString()} 
+                    onValueChange={(value) => setExperienceFilter(Number(value))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select minimum experience" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Any Experience</SelectItem>
+                      <SelectItem value="1">1+ Years</SelectItem>
+                      <SelectItem value="3">3+ Years</SelectItem>
+                      <SelectItem value="5">5+ Years</SelectItem>
+                      <SelectItem value="10">10+ Years</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <Label className="mb-2">Specialties</Label>
+              <div className="flex flex-wrap gap-2">
+                {specialtyOptions.map((specialty) => (
+                  <Toggle
+                    key={specialty}
+                    pressed={selectedSpecialties.includes(specialty)}
+                    onPressedChange={() => handleSpecialtyToggle(specialty)}
+                    className="bg-white border border-gray-300 hover:bg-care-light hover:text-care-primary data-[state=on]:bg-care-light data-[state=on]:text-care-primary"
+                  >
+                    {specialty}
+                  </Toggle>
+                ))}
+              </div>
+            </div>
+
             <div className="mt-6 flex justify-end">
               <Button onClick={handleSearch} className="bg-care-primary hover:bg-care-secondary">
                 <Search size={18} className="mr-2" />
@@ -172,20 +283,32 @@ const FindCaregivers = () => {
               </h2>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500">Sort by:</span>
-                <select className="border rounded-md px-3 py-1 text-sm">
-                  <option>Rating: High to Low</option>
-                  <option>Experience: High to Low</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                </select>
+                <Select value={sortOption} onValueChange={setSortOption}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rating-high">Rating: High to Low</SelectItem>
+                    <SelectItem value="experience-high">Experience: High to Low</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCaregivers.map((caregiver) => (
-                <CaregiverCard key={caregiver.id} caregiver={caregiver} />
-              ))}
-            </div>
+            {filteredCaregivers.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-xl text-gray-500">No caregivers match your search criteria.</p>
+                <p className="text-gray-500 mt-2">Try adjusting your filters to see more results.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCaregivers.map((caregiver) => (
+                  <CaregiverCard key={caregiver.id} caregiver={caregiver} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>

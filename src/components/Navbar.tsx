@@ -28,8 +28,12 @@ const Navbar = () => {
           </Link>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" className="text-care-primary">Login</Button>
-          <Button className="bg-care-primary hover:bg-care-secondary">Sign Up</Button>
+          <Button variant="ghost" className="text-care-primary" asChild>
+            <Link to="/login">Login</Link>
+          </Button>
+          <Button className="bg-care-primary hover:bg-care-secondary" asChild>
+            <Link to="/signup">Sign Up</Link>
+          </Button>
         </div>
       </div>
     </nav>

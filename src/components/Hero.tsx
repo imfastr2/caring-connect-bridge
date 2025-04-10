@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
@@ -14,11 +15,11 @@ const Hero = () => {
             CareConnect bridges the gap between those who need care and those who provide it.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="bg-care-primary hover:bg-care-secondary text-lg">
-              Find a Caregiver
+            <Button size="lg" className="bg-care-primary hover:bg-care-secondary text-lg" asChild>
+              <Link to="/find-caregivers">Find a Caregiver</Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-care-primary text-care-primary hover:bg-care-light text-lg">
-              Become a Caregiver
+            <Button size="lg" variant="outline" className="border-care-primary text-care-primary hover:bg-care-light text-lg" asChild>
+              <Link to="/become-caregiver">Become a Caregiver</Link>
             </Button>
           </div>
         </div>
